@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Promise</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <h1>JavaScript Promise</h1>
+    <p>Promise 是构造函数，用来构造实例对象，在创建实例对象的时候，将一个函数作为参数传递给 Promise，该函数会在执行 Promise 构造函数时执行，并且 Promise 会传递两个实参函数（resolve 和
+        reject）给这个函数执行。</p>
+    <p>传递的函数内部可编写异步代码，当异步任务完成时，通过调用 resolve 或 reject 函数来通知 Promise 实例对象，让他修改表示状态的自身属性。</p>
+    <p>一旦异步代码执行完，并且执行了 resolve 或 reject 函数，这时候该 Promise 实例对象的状态就冻结了。</p>
+    <p>当程序员需要用到异步任务后得到的数据时，只需要找到 Promise 实例对象，调用它的实例方法 then，最多传入两个函数作为接收数据的回调函数。</p>
+    <p>第一个函数表示成功的回调，也就是当异步任务完成时（程序员自己判断是否成功，在构造时传递的函数中写的代码，如果成功调用 resolve 函数，如果失败，调用 reject 函数），Promise 实例对象会自己执行 then
+        的第一个参数函数。</p>
+    <p>执行的时间根据异步任务的完成情况和通过 then 传递的回调函数的具体写在哪里来执行。</p>
+    <p>如果程序员写好了 then 的回调，而异步任务还没结束，那这个异步任务会进入当前 Promise 实例对象的待执行成功回调函数所组成的数组中，等待 resolve 函数执行改变 Promise 状态并执行数组中的回调函数。
+    </p>
+    <p>如果程序员写好了 then 的回调，而异步任务早就结束，这时候会直接执行回调函数。</p>
+    <p>同样道理，then 的第二个参数就是错误回调，当程序员认为异步任务出错了，则执行 reject 函数，这时候 Promise 实例对象的状态就从 pending 变为 rejected，也会执行错误回调函数。</p>
+
+    <pre>
+        const p = new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+                console.log("2. 异步任务执行成功")
+            }, 5000);
+            console.log('1. 注册异步任务成功')
+        })
+        // 实例化 Promise 对象后立即注册成功回调，这时候异步任务还没结束，等异步任务结束，Promise 实例对象状态改变，才会执行成功回调
+        p.then(() => {
+            console.log("3. 正在执行异步任务执行成功的回调函数")
+        })
+    </pre>
+
+    <pre>
+        const p = new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+                console.log("2. 异步任务执行成功")
+            }, 2000);
+            console.log('1. 注册异步任务成功')
+        })
+
+        setTimeout(() => {
+            // 等异步任务执行成功后，才注册成功回调函数，这时候异步任务早已结束，Promise 实例对象状态也早已改变
+            p.then(() => {
+                console.log("3. 正在执行异步任务执行成功的回调函数")
+            })
+        }, 5000);
+    </pre>
+</body>
+
+</html>
