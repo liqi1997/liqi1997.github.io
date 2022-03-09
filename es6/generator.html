@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Generator</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <h1>JavaScript Generator</h1>
+    <p>Generator 是一种特殊的函数，正常的函数运行完函数体（或在函数体中遇到 return）之后会退栈，而 Generator 在函数体中遇到 yield 后会暂停执行，Generator
+        执行产生的上下文环境会暂时退出堆栈，里面所有的变量和对象会冻结在当前状态，等到程序员显式调用 Generator
+        函数返回的实例对象的 next 方法时，上下文环境才会重新进入堆栈，才会接着执行。</p>
+
+    <pre>
+        function* ge() {
+            console.log('start run ge')
+            yield 123;
+            console.log('restart run ge')
+            yield 456;
+            console.log('run ge 3');
+            // return 789;
+        }
+        const g = ge();
+        console.log("生成 Generator 对象成功")
+        console.log(g.next());
+        console.log(g.next());
+        console.log(g.next());
+        console.log(g.next());
+    </pre>
+
+    <p>Generator 函数入栈执行任务后将数据暴露给外层，外层处理数据后交给 Generator 内部。</p>
+    <pre>
+        function* ge() {
+            const res = yield 1 + 1;
+            console.log('res', res) // 对于前端来说，获取到的数据，要么提交给后端，要么渲染到页面（提交给用户），仅此而已
+        }
+
+        const g = ge();
+        console.log(g.next().value)
+        g.next(100)
+    </pre>
+
+
+    <p>
+        Generator 异步应用
+    </p>
+    <pre>
+        function p1() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(2)
+                }, 2000);
+            })
+        }
+        function p2() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(20)
+                }, 2000);
+            })
+
+        }
+
+        function* asyncTask() {
+            console.log('start run asyncTask')
+            const res1 = yield p1();
+            console.log('res1', res1)
+            const res2 = yield p2();
+            console.log('res2', res2)
+            console.log('end run asyncTask')
+        }
+
+        const i = asyncTask();
+        const res1 = i.next().value
+        console.log('get res1 in out env', res1)
+        const res2 = i.next(res1).value;
+        console.log('get res2 in out env', res2)
+        const res3 = i.next(res2)
+        console.log('res3 iterator', res3)
+    </pre>
+
+    <p>
+        如何自动化走完 Generator 的任务，才是使用 Generator 进行异步任务处理的关键
+    </p>
+    <pre>
+        function p1() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(2)
+                }, 2000);
+            })
+        }
+        function p2() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(20)
+                }, 4000);
+            })
+
+        }
+
+        function* asyncTask() {
+            console.log('start run asyncTask')
+            const res1 = yield p1();
+            console.log('res1', res1)
+            const res2 = yield p2();
+            console.log('res2', res2)
+            console.log('end run asyncTask')
+        }
+
+        const i = asyncTask();
+        i.next().value.then(res1 => {
+            console.log('get res1 in out env', res1)
+            i.next(res1).value.then(res2 => {
+                console.log('get res2 in out env', res2)
+                const res3 = i.next(res2)
+                console.log('res3 iterator', res3)
+            })
+
+        })
+    </pre>
+
+    <pre>
+                function p1() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(2)
+                }, 2000);
+            })
+        }
+        function p2() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(20)
+                }, 4000);
+            })
+
+        }
+
+        function* asyncTask() {
+            console.log('start run asyncTask')
+            const res1 = yield p1();
+            console.log('res1', res1)
+            const res2 = yield p2();
+            console.log('res2', res2)
+            console.log('end run asyncTask')
+        }
+
+        function autoRun(gen) {
+            let g = gen();
+
+            // while (!result.done) {
+            //     result.value.then(res => {
+            //         result = g.next(res)
+            //     })
+            // }
+
+            function run(res) {
+                let result = g.next(res);
+                if (result.done) {
+                    return;
+                }
+                result.value.then(res => {
+                    run(res)
+                })
+            }
+
+            run();
+        }
+
+        autoRun(asyncTask);
+        console.log('好戏开场了')
+
+            // 手动执行完 Generator
+            // const i = asyncTask();
+            // i.next().value.then(res1 => {
+            //     console.log('get res1 in out env', res1)
+            //     i.next(res1).value.then(res2 => {
+            //         console.log('get res2 in out env', res2)
+            //         const res3 = i.next(res2)
+            //         console.log('res3 iterator', res3)
+            //     })
+
+            // })
+
+    </pre>
+</body>
+
+</html>

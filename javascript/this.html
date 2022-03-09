@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript this</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <h1>JavaScript this</h1>
+
+    <pre>
+        'use strict'
+        var user = {
+            age: 25,
+            print: function () {
+                function printAge() {
+                    // 严格模式下 this 指向 undefined，非严格模式下指向 window
+                    console.log(this.age)
+                    console.log(this === window)
+                }
+                printAge();
+            }
+        }
+        user.print();
+    </pre>
+</body>
+
+</html>
