@@ -11,6 +11,28 @@
 
 <body>
     <h1>JavaScript 对象</h1>
+    <p>对象是存储数据的容器，对象中的数据又叫做对象的属性，属性有分类：数据属性和方法属性。</p>
+    <p>数据属性可以存储基本类型和引用类型的数据，存储基本类型的值或者引用类型的指针。</p>
+    <p>方法属性存储的是函数对象的指针。</p>
+    <p>存取器属性本质上是方法，用来修改和读取其他属性，但是用数据属性的方式调用。</p>
 </body>
+
+<script>
+    const user = {
+        firstName: 'li',
+        lastName: 'qi',
+        get name() {
+            return this.firstName + ' ' + this.lastName;
+        },
+        print(x) {
+            console.log(x)
+        }
+    }
+    console.log(user.name)
+    console.log(typeof user.name)
+    console.log(typeof user.print)
+
+
+</script>
 
 </html>

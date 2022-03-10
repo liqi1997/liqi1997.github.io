@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Map 和 Set</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <h1>JavaScript Map 和 Set</h1>
+    <p>普通的对象是无序属性的容器，以键值对的形式存储，而 Map 和 Set 是也是对象，也是无序属性的容器，也以键值对的形式进行存储。</p>
+    <h2>Map</h2>
+    <h2>Set</h2>
+    <pre>
+        console.log(typeof Set);
+        const s = new Set();
+        s.add(1);
+        s.add(1)
+        s.add(2)
+        console.log(s.has(2))
+        console.log('delete boolean result', s.delete(2));
+        console.log('delete boolean result', s.delete(2));
+        s.clear();
+        console.log(s.size)
+    </pre>
+    <p>
+        去除数组重复元素
+    </p>
+    <pre>
+        const s = new Set([1, 1, 2, 2, 3])
+        const arr = Array.from(s);
+        console.log(arr)
+        
+        console.log([...new Set([1, 1, 2, 2, 3])])
+    </pre>
+
+</body>
+
+<script>
+</script>
+
+</html>

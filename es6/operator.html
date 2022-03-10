@@ -11,6 +11,67 @@
 
 <body>
     <h1>JavaScript 操作符</h1>
+    <h2>指数运算符</h2>
+    <pre>
+        console.log(3 ** 2)
+        console.log(2 ** 2 ** 3)
+        console.log(2 ** 2 ** 3 === 2 ** (2 ** 3))
+        console.log((2 ** 2) ** 3)
+    </pre>
+    <h2>链判断运算符</h2>
+    <p>获取属性</p>
+    <pre>
+        let obj = {}
+        console.log(obj?.child?.name);
+        let obj2 = { child: 123 }
+        console.log(obj2?.child?.name);
+        let obj3 = { child: { name: 456 } }
+        console.log(obj3?.child?.name);
+
+        let obj = {
+        age: 25
+        }
+        let foo = 'bar'
+        console.log(obj?.age)
+        console.log(obj?.foo)
+        console.log(obj?.[foo])
+    </pre>
+    <p>如果存在方法就执行</p>
+    <pre>
+        let obj = {
+            print(x) {
+                console.log(x)
+            },
+        }
+        obj.getValue?.();
+        obj?.print(100);
+    </pre>
+    <h2>null 判断运算符</h2>
+    <p>原来的写法，0 和其他能自动转换成 false 的情况下，|| 可能会导致预料之外的错误</p>
+    <pre>
+        let res = false;
+        res = 0;
+        res = NaN;
+        res = '';
+        res = null;
+        res = undefined;
+        res = 456;
+        let result = res || 123;
+        console.log(result)
+    </pre>
+    <p>使用 <code>??</code> 来判断前面的值是否是 <code>null</code> 或 <code>undefined</code></p>
+    <pre>
+        // let res = null;
+        res = 0;
+        let result = res ?? 123;
+        console.log(result)
+    </pre>
 </body>
+<script>
+
+
+
+
+</script>
 
 </html>
