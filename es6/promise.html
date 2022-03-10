@@ -126,72 +126,276 @@
             console.log('2. get res', res)
         })
     </pre>
+    <p>自定义 Promise 是前段必由之路</p>
+    <pre>
+    function MyPromise(executor) {
+
+            const self = this;
+            this.status = 'pending'
+            this.resolvedCallbackList = []
+            this.rejectedCallbackList = []
+
+            function resolve(value) {
+                console.log('run resolve', value)
+                if (self.status === 'pending') {
+                    self.status = 'resolved'
+                    console.log('run resolve', value, self.resolvedCallbackList)
+                    for (let i = 0; i < self.resolvedCallbackList.length; i++) {
+                        self.resolvedCallbackList[i](value)
+                    }
+                }
+            }
+
+            function reject(reason) {
+                if (this.status === 'pending') {
+                    this.status = 'rejected'
+                    for (let i = 0; i < this.rejectedCallbackList.length; i++) {
+                        this.rejectedCallbackList[i](reason)
+                    }
+                }
+            }
+
+            try {
+                // 运行程序员自己写的代码（主要是异步代码），程序员自己判断异步的结果是否成功，如果正确执行 MyPromise 给它传入的 resolve 函数，如果失败执行 reject 函数
+                executor(resolve, reject)
+            } catch (error) {
+                // executor  发生了同步错误，会在这里捕获
+                reject(error)
+            }
+
+        }
+
+        MyPromise.prototype.then = function (onResolved, onRejected) {
+            // if (this.status === 'resolved') {
+
+            // }
+            if (this.status === 'pending') {
+                this.resolvedCallbackList.push(onResolved)
+            }
+        }
+
+        const p = new MyPromise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(3)
+            }, 3000);
+        })
+
+        console.log(p)
+
+        p.then(res => {
+            console.log('res', res)
+        })
+    </pre>
+
+    <p>Promise 很多地方都需要研究</p>
+    <pre>
+    function MyPromise(executor) {
+        const self = this;
+        self.status = 'pending'
+
+        function resolve(value) {
+            // 这里得用异步的写法，如果不用，会出现包裹非异步任务的 promise，比后面的同步任务还先执行， 这样就背离了 promise 的设计原则
+            console.log("run my resolve", value)
+        }
+
+        function reject(error) {
+            if (self.status === 'pending') {
+                self.status = 'rejected'
+                console.log('error', error)
+            } else {
+                console.log('用户乱写，还试图将非 pending 的 promise 修改状态')
+            }
+        }
+
+        try {
+            executor(resolve, reject)
+        } catch (error) {
+            reject(error)
+        }
+    }
+
+    const p = new MyPromise((resolve, reject) => {
+        console.log('start run my promise')
+        resolve(123)
+    })
+
+    console.log("app run")
+
+
+    const p2 = new Promise((resolve, reject) => {
+        console.log('run native promise')
+        resolve(456)
+    })
+    p2.then(res => {
+        console.log('res', res)
+    })
+
+    console.log('program run.')
+    </pre>
+
+    <p>一步一步实现 Promise，还差链式调用和错误处理</p>
+    <pre>
+            function MyPromise(executor) {
+        const self = this;
+        self.status = 'pending'
+        self.resolvedCallbackList = []
+        self.rejectedCallbackList = []
+        self.data = undefined;
+        self.error = undefined;
+
+        function resolve(value) {
+            setTimeout(() => {
+                if (self.status === 'pending') {
+                    self.status = 'resolved'
+                    self.data = value; // 如果 then 注册的回调函数在 promise status 已经成功的情况下才注册成功，那么只能在 then 里面判断状态立即执行回调了，
+                    // 所以这里需要保存 promise 实例对象的数据
+
+                    // 这里得用异步的写法，如果不用，会出现包裹非异步任务的 promise，比后面的同步任务还先执行， 这样就背离了 promise 的设计原则
+                    setTimeout(() => {
+                        console.log("run my resolve", value)
+                        for (let i = 0; i < self.resolvedCallbackList.length; i++) {
+                            self.resolvedCallbackList[i](value) // 如果异步任务还没执行完，成功的回调函数就通过 then 注册了，不论注册几个都会放进数组，在这里执行
+
+                            // 执行回调函数其实本质上对于 promise 毫无影响，如果不考虑其他的 Promise 依赖当前这个 Promise 的结果来执行，那就把回调函数当作副作用函数执行即可。
+                        }
+                    }, 0);
+                    // setTimeout 默认会被添加 4ms
+                } else {
+                    console.log('重复执行 resolve 是没用的')
+                }
+            }, 0);
+        }
+
+        function reject(error) {
+            setTimeout(() => {
+                if (self.status === 'pending') {
+                    self.status = 'rejected'
+                    self.error = error;
+                    setTimeout(() => {
+                        console.log('error', error)
+                        for (let i = 0; i < self.rejectedCallbackList.length; i++) {
+                            self.rejectedCallbackList[i](error) // 如果异步任务还没执行完，失败的回调函数就通过 then 注册了，不论注册几个都会放进数组，在这里执行
+                        }
+                    }, 0);
+                } else {
+                    console.log('用户乱写传入给 Promise 构造函数的包裹异步任务的函数，还试图将非 pending 的 promise 修改状态')
+                }
+            }, 0);
+        }
+
+        try {
+            executor(resolve, reject)
+        } catch (error) {
+            // 这里捕捉的是传入的函数执行过程中发生的同步错误，而异步任务的错误由程序员自己判断指定
+            reject(error)
+        }
+    }
+
+    MyPromise.prototype.then = function (onResolved, onRejected) {
+
+        // 做到这些就实现了 Promise 的一个功能：封装异步任务，并通过 then 取得异步结果
+        // console.log('then status', this.status)
+        // if (this.status === 'resolved') {
+        //     onResolved(this.data);
+        // }
+        // if (this.status === 'rejected') {
+        //     onRejected(this.error)
+        // }
+        // if (this.status === 'pending') {
+        //     this.resolvedCallbackList.push(onResolved)
+        //     this.rejectedCallbackList.push(onRejected)
+        // }
+
+        // 但 Promise 的作用还有链式调用，即通过上一个异步任务的结果来开启下一次异步任务，或者在下一次异步任务中使用当前任务的结果和之前任务的结果，一起做处理。
+        // 链式的意义就是解决回调地狱，也就是回调函数的嵌套式写法
+        // 把嵌套的写法转换成链式写法，最起码看起来舒服
+        console.log('then status', this.status)
+        if (this.status === 'resolved') {
+
+            return new MyPromise((resolve, reject) => {
+                const res = onResolved(this.data); // 回调函数处理完数据后把
+                resolve(res)
+            })
+
+        }
+        if (this.status === 'rejected') {
+            onRejected(this.error)
+        }
+        if (this.status === 'pending') {
+            this.resolvedCallbackList.push(onResolved)
+            this.rejectedCallbackList.push(onRejected)
+        }
+    }
+
+    const p = new MyPromise((resolve, reject) => {
+        console.log('start run my promise')
+        setTimeout(() => {
+            resolve(100)
+        }, 2000);
+        // resolve(456) // 重复执行 resolve 是没用的
+        // reject(456)
+        // console.log(x.length)
+    })
+
+    // p.then(function (res) {
+    //     console.log('then res', res)
+    // }, function (err) {
+    //     console.log('then err', err)
+    // })
+    // p.then(function (res) {
+    //     console.log('then res2', res)
+    // }, function (err) {
+    //     console.log('then err2', err)
+    // })
+
+    setTimeout(() => {
+        console.log('这时候 p 的状态早已不是 pending，要么是 resolved，要么是 rejected')
+        p.then(function (res) {
+            console.log(`
+            我是第一个 Promise 实例对象的成功回调函数，在这里处理完数据后再把数据 return，这样我这个 then 返回新的 Promise，它内部根据我这里返回的成功同步数据，就会把自己的 status
+            改成 resolved，把我给它的数据当作自己的数据，这样再接着接 then 传入回调函数，就能拿到我处理后的数据。
+            `, res)
+            return res * 10
+        }, function (err) {
+            console.log('then err', err)
+        }).then(result => {
+            console.log('第二个 Promise 实例对象取到了第一个 Promise 实例对象成功回调函数中处理过的值', result)
+        })
+
+
+        p.then(function (res) {
+            console.log('then res2', res)
+        }, function (err) {
+            console.log('then err2', err)
+        }).then(result => {
+            console.log('第一个 Promise 实例对象注册了两个 then 又如何，两个成功回调都能拿到数据，并且处理后返回新的 Promise', result)
+        })
+    }, 4000);
+
+    console.log("app run")
+    </pre>
 </body>
 
 <script>
-         // function User(age) {
-        //     this.age = age;
 
-        //     function
-        // }
+    const p1 = new Promise(() => { });
+    const p2 = Promise.resolve(p1)
+    console.log(p1 === p2)
+    console.log(p2)
 
-        // function MyPromise(executor) {
+    const p3 = Promise.resolve(123)
+    console.log(p3)
+    p3.then(res => {
+        console.log(res)
+    })
+    setTimeout(() => {
+        p3.then(res => {
+            console.log(res)
+        })
+    }, 1000);
 
-        //     const self = this;
-        //     this.status = 'pending'
-        //     this.resolvedCallbackList = []
-        //     this.rejectedCallbackList = []
-
-        //     function resolve(value) {
-        //         console.log('run resolve', value)
-        //         if (self.status === 'pending') {
-        //             self.status = 'resolved'
-        //             console.log('run resolve', value, self.resolvedCallbackList)
-        //             for (let i = 0; i < self.resolvedCallbackList.length; i++) {
-        //                 self.resolvedCallbackList[i](value)
-        //             }
-        //         }
-        //     }
-
-        //     function reject(reason) {
-        //         if (this.status === 'pending') {
-        //             this.status = 'rejected'
-        //             for (let i = 0; i < this.rejectedCallbackList.length; i++) {
-        //                 this.rejectedCallbackList[i](reason)
-        //             }
-        //         }
-        //     }
-
-        //     try {
-        //         // 运行程序员自己写的代码（主要是异步代码），程序员自己判断异步的结果是否成功，如果正确执行 MyPromise 给它传入的 resolve 函数，如果失败执行 reject 函数
-        //         executor(resolve, reject)
-        //     } catch (error) {
-        //         // executor  发生了同步错误，会在这里捕获
-        //         reject(error)
-        //     }
-
-        // }
-
-        // MyPromise.prototype.then = function (onResolved, onRejected) {
-        //     // if (this.status === 'resolved') {
-
-        //     // }
-        //     if (this.status === 'pending') {
-        //         this.resolvedCallbackList.push(onResolved)
-        //     }
-        // }
-
-        // const p = new MyPromise((resolve, reject) => {
-        //     setTimeout(() => {
-        //         resolve(3)
-        //     }, 3000);
-        // })
-
-        // console.log(p)
-
-        // p.then(res => {
-        //     console.log('res', res)
-        // })
+    const p4 = Promise.reject(456)
+    console.log(p4)
 
 </script>
 
