@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript 解构</title>
+    <link rel="stylesheet" href="../css/index.css">
+</head>
+
+<body>
+    <h1>JavaScript 解构</h1>
+    <p>先看看 ES5 怎么从数组中取值</p>
+    <pre>
+        var arr = [1, 2, { name: 'liqi' }];
+        var element1 = arr[0]
+        arr[0] = 100;
+        console.log(element1)
+        var element3 = arr[2]
+        arr[2].name = 'lq'
+        console.log(element3);
+    </pre>
+    <p>下面介绍解构赋值的作用：传统写法的简写</p>
+    <pre>
+        var [e1, e2, e3] = arr;
+        arr[1] = 200;
+        arr[2].name = 'LI'
+        console.log(e1, e2, e3)
+    </pre>
+    <p>解构赋值的工作原理：模式匹配，等号两侧模式相同即解构成功</p>
+    <pre>
+        var [age1, [age2]] = [100, [200, 300]];
+        console.log('age', age1, age2)
+    </pre>
+    <pre>
+    var [age1, , age3] = [1, 2, 3, 4];
+    console.log(age1, age3)
+    var [element1] = []
+    console.log(element1)
+
+    var [e1, ...others] = [1, 2, 3, 4]
+    console.log(others, typeof others, others instanceof Array)
+    </pre>
+    <p>等号右边不是可迭代结构会报错，所以说解构的原理就是通过迭代器对象来查找并赋值</p>
+    <pre>
+    var [age1] = {};
+    </pre>
+    <p>默认值，只有在 undefined 的时候才生效</p>
+</body>
+<script>
+    var [age1 = 123] = []
+    var [age2 = 456] = [null]
+    console.log(age1, age2)
+
+</script>
+
+</html>
